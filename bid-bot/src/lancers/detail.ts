@@ -1,6 +1,6 @@
 import type { Page } from "playwright";
 import { selectors } from "./selectors.js";
-import type { TaskDetail } from "../types.js";
+import type { TaskDetail } from "../core/types.js";
 
 function toTaskUrl(workId: string): string {
   return `https://www.lancers.jp/work/propose_start/${workId}?proposeReferer=`;

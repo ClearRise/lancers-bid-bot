@@ -1,0 +1,18 @@
+{
+  "bidBots": [
+    {
+      "id": "account-a",
+      "port": 3000,
+      "host": "127.0.0.1",
+      "notifyPath": "/notify",
+      "notificationDashboardKeys": ["system", "web"]
+    },
+    {
+      "id": "account-b",
+      "port": 4000,
+      "host": "127.0.0.1",
+      "notifyPath": "/notify",
+      "notificationDashboardKeys": ["web"]
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 import type { Page } from "playwright";
 import { selectors } from "./selectors.js";
-import { config } from "../config.js";
-import { buildProposalText } from "../proposal-text.js";
-import type { BidResult, TaskDetail } from "../types.js";
+import { config } from "../core/config.js";
+import { buildProposalText } from "../proposals/proposal-text.js";
+import type { BidResult, TaskDetail } from "../core/types.js";
 
 const STATIC_ESTIMATE_TEXT = `詳細はメッセージにてご相談できればと思っております。`;
 

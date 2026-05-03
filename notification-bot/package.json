@@ -5,7 +5,7 @@
   "description": "Monitors lancers.jp dashboard for new tasks and notifies a bid service",
   "type": "module",
   "scripts": {
-    "start": "tsx src/index.ts",
+    "start": "tsx src/app/index.ts",
     "session:save": "tsx scripts/save-session.ts"
   },
   "engines": {

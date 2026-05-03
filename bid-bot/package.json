@@ -5,9 +5,9 @@
   "description": "Automated bidding bot scaffold for lancers.jp",
   "type": "module",
   "scripts": {
-    "start": "tsx src/index.ts",
-    "bid:manual": "tsx src/manual-bid.ts",
-    "study:japanese": "tsx src/japanese-study.ts",
+    "start": "tsx src/app/index.ts",
+    "bid:manual": "tsx src/app/manual-bid.ts",
+    "study:japanese": "tsx src/proposals/japanese-study.ts",
     "session:save": "tsx scripts/save-session.ts",
     "toast:register": "tsx scripts/register-windows-toast.ts",
     "check": "tsc --noEmit"

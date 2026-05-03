@@ -34,17 +34,22 @@ build/
 *.tsbuildinfo
 
 # --- Playwright (sessions, test output) ---
-**/storage-state*.json
 **/cookies.json
 **/test-results/
 **/playwright-report/
 **/blob-report/
 **/playwright/.cache/
 
-# --- Bot runtime / local state ---
+# --- Bot runtime / local state (under each package's data/) ---
+bid-bot/data/**
+!bid-bot/data/.gitkeep
+notification-bot/data/**
+!notification-bot/data/.gitkeep
+
+# --- Legacy paths at package root (old layout before data/) ---
 bid-bot/bid-history.json
 bid-bot/bid-queue.json
+bid-bot/manual-bid-task-ids.txt
+bid-bot/storage-state*.json
 notification-bot/seen-work-ids.json
-
-# --- Bid bot prompts / filter config (local only) ---
-bid-bot/filter_settings/
+notification-bot/storage-state*.json

@@ -1,6 +1,6 @@
 import type { Page } from "playwright";
 import { selectors } from "./selectors.js";
-import type { TaskSummary } from "../types.js";
+import type { TaskSummary } from "../core/types.js";
 
 function toAbsolute(href: string): string {
   if (href.startsWith("http")) return href;

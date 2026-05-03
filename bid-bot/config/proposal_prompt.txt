@@ -1,0 +1,97 @@
+Write a polite and natural Japanese proposal message for Lancers based on a given project in detail as possible.
+The writing should feel like it was written by a real Japanese freelancer with practical experience. Avoid any AI-like tone, exaggerated expressions, or overly sales-oriented wording. Do not focus on self-promotion. Instead, focus on clearly understanding the project and explaining how you would approach and execute the work.
+Start the proposal with the following exact text:
+「はじめまして
+ECサイトから業務システムまで幅広く開発を行っており、設計〜実装まで対応しています。」
+
+For web and e-commerce website projects, please include at least 8 portfolio site links as shown below.
+「以下は、これまでに{{技術スタック}}を用いて制作・改善を行ったサイトの一部です。デザイン・コーディングの両方を担当したものに加え、デザインのみ、またはコーディングのみを担当した案件も含まれております。」
+https://youka81.shop-pro.jp (ColorMeShop)
+https://shinjikoshijimi.shop-pro.jp (ColorMeShop)
+https://risshodo.shop-pro.jp (ColorMeShop)
+https://omorigarden.shop-pro.jp (ColorMeShop)
+https://kanboshiya.shop-pro.jp (ColorMeShop)
+https://masuko.shop-pro.jp (ColorMeShop)
+https://www.tsunagu-uchiiwai.jp (ColorMeShop)
+https://patina.shop-pro.jp (ColorMeShop)
+		
+https://www.santen.com/jp/healthcare/eye/products/brand/well_wash_eye (LP)
+https://aidcastore.aidca.jp/wp/yokuneta (LP)
+https://salonia.jp/special/silkepi/ (LP)
+https://equals-soap.jp (LP)
+https://toyota-human-resources-forum.jp (LP)
+		
+https://partners-re.co.jp (Wordpress)
+https://www.chouchou-tk.com (Wordpress)
+https://shinsei-duct.com (Wordpress)
+https://www.pyuru.co.jp (Wordpress)
+https://www.welleg.co.jp (Wordpress)
+https://xico.co.jp (Wordpress)
+http://crie.co.jp (Wordpress)
+https://dada-iwate.jp (Wordpress)
+https://dailyskinclinic.jp (Wordpress)
+https://noren-world.com (Wordpress)
+https://www.pearl-kaseihin.co.jp (Wordpress)
+https://onozu.jp (Wordpress)
+https://bullbay-laletter.com (Wordpress)
+https://asahicity-kanko.jp (Wordpress)
+https://ogiya-wedding.jp (Wordpress)
+https://ace-industry.co.jp (Wordpress)
+https://becky36.com (Wordpress)
+http://unitrust.co.jp (Wordpress)
+https://gree-x.com (Wordpress)
+https://www.hayama-honten.com (Wordpress)
+https://hollys-corp.jp (Wordpress)
+https://www.saint-marc-hd.com (Wordpress)
+https://car-osoujiya.com (Wordpress)
+https://www.ninedental.jp (Wordpress)
+https://caramelife.jp (Wordpress)
+https://www.jellynail.net (Wordpress)
+		
+https://www.stellabeaute.jp (Shopify)
+https://brilliage.jp (Shopify)
+https://cocacoca.jp (Shopify)
+https://www.strapya.com (Shopify)
+https://shop.idesnet.co.jp (Shopify)
+https://www.stellabeaute.jp/pages/luna (Shopify)
+https://ciara-store.com (Shopify)
+https://haremode.jp (Shopify)
+https://store.foxinc.jp (Shopify)
+https://johnmastersorganics.jp (Shopify)
+https://jewelgarden.jp (Shopify)
+https://onlineshop.treeoflife.co.jp (Shopify)
+https://nemuli.co.jp (Shopify)
+https://the-web.co.jp (Shopify)
+https://championstore.jp (Shopify)
+https://branche-chocolat.jp (Shopify)
+https://perseofficial.jp (Shopify)
+https://sake-shirakiku.jp (Shopify)
+https://coss-coss.jp (Shopify)
+		
+http://nyle.co.jp (microCMS)
+https://www.hasegawa-kogyo.co.jp (microCMS)
+https://nij.nikon.com (ecbeing)
+https://www.zoff.co.jp/shop/default.aspx (ecbeing, ASP.Net)
+https://yourkins.com (ecForce)
+https://andhabit.com/shop (ecForce)
+https://www.donguri-sora.com (ebisumart)
+https://www.ricepowershop.jp (ASP.Net, React)
+https://www.jillstuart-floranotisjillstuart.com (Astro)
+https://shiro-shiro.jp (Astro)
+
+Then, demonstrate your understanding of the project by mentioning important points as detail as possible from the description. Highlight what seems important in terms of structure, functionality, or operation, and include any relevant technical considerations in a natural way.
+Next, explain how you would proceed with the work in a realistic sequence, such as requirements clarification, design, implementation, testing, and delivery. Be concrete about what you would actually do at each stage, rather than speaking abstractly.
+If applicable, include one realistic risk or potential issue that might arise during the project, and briefly explain how you would handle or mitigate it.
+If there are unclear points in the project description, you may include up to three simple and practical clarification questions.
+Keep the tone polite, calm, and professional throughout, as commonly used in Japanese business communication.
+End the proposal naturally with:
+「まずは一度お話できれば嬉しいです。」
+Do not include generic phrases, keyword lists, or any guarantees. Also, do not mention external communication tools.
+
+Project: 
+- Title: {{TITLE}} 
+- Description: {{DESCRIPTION}} 
+- Budget Text: {{BUDGET_TEXT}} 
+- Budget Min JPY: {{BUDGET_MIN_JPY}} 
+- Budget Max JPY: {{BUDGET_MAX_JPY}} 
+- Deadline: {{DEADLINE}}

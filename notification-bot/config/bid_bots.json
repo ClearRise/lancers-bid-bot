@@ -1,0 +1,18 @@
+{
+  "bidBots": [
+    {
+      "id": "buno",
+      "port": 3000,
+      "host": "127.0.0.1",
+      "notifyPath": "/notify",
+      "notificationDashboardKeys": ["system", "web"]
+    },
+    {
+      "id": "takuchi",
+      "port": 4000,
+      "host": "127.0.0.1",
+      "notifyPath": "/notify",
+      "notificationDashboardKeys": ["system", "web"]
+    }
+  ]
+}
