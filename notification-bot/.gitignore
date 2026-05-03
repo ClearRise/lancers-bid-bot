@@ -1,8 +1,16 @@
+# Local overrides (root .gitignore also applies when working from repo root)
 node_modules/
 .env
-storage-state.json
+.env.*
+!.env.example
+
+# Playwright login session
+storage-state*.json
 cookies.json
+
+# Runtime state
 seen-work-ids.json
-playwright-report/
+
+# Playwright artifacts
 test-results/
-bid-bot/filter_settings
+playwright-report/
