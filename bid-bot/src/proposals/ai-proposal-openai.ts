@@ -36,7 +36,7 @@ export async function generateProposalText(detail: TaskDetail): Promise<string |
   const prompt = createPrompt(detail);
   if (!prompt) {
     if (!warnedMissingPrompt) {
-      console.warn("[ai-proposal-openai] Missing prompt file: config/proposal_prompt.txt");
+      console.warn("[ai-proposal-openai] Missing or empty proposal_prompt.txt in profile folder (or __config/ or config/)");
       warnedMissingPrompt = true;
     }
     return null;

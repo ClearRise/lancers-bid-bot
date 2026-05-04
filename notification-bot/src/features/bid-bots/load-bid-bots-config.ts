@@ -3,28 +3,32 @@ import path from "node:path";
 import { z } from "zod";
 import type { BidBotConfigFileEntry, BidBotNotifyTarget, BidBotsConfigFile } from "./types.js";
 
+/** bid-bot HTTP notify endpoint path (fixed; not configurable per bot). */
+const BID_BOT_NOTIFY_PATH = "/notify";
+/** Default when `host` is omitted in bid_bots.json (local bid-bots). */
+const DEFAULT_BID_BOT_HOST = "127.0.0.1";
+
 const entrySchema = z
   .object({
     id: z.string().min(1),
     notifyUrl: z.string().url().optional(),
     host: z.string().min(1).optional(),
     port: z.coerce.number().int().positive(),
-    notifyPath: z.string().optional(),
     enabled: z.boolean().optional(),
     notificationDashboardUrls: z.array(z.string().url()).optional(),
     dashboardUrls: z.array(z.string().url()).optional(),
-    notificationDashboardKeys: z.array(z.string().min(1)).optional(),
+    taskCategoryKeys: z.array(z.string().min(1)).optional(),
   })
   .superRefine((val, ctx) => {
     const n = val.notificationDashboardUrls?.length ?? 0;
     const d = val.dashboardUrls?.length ?? 0;
-    const k = val.notificationDashboardKeys?.length ?? 0;
+    const k = val.taskCategoryKeys?.length ?? 0;
     if (n === 0 && d === 0 && k === 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "Each bid-bot needs notificationDashboardKeys (names from settings.json notificationMonitorUrls) and/or notificationDashboardUrls / dashboardUrls",
-        path: ["notificationDashboardKeys"],
+          "Each bid-bot needs taskCategoryKeys (names from settings.json notificationMonitorUrls) and/or notificationDashboardUrls / dashboardUrls",
+        path: ["taskCategoryKeys"],
       });
     }
   });
@@ -35,14 +39,14 @@ function monitorUrlsForEntry(
 ): string[] {
   if (entry.notificationDashboardUrls?.length) return entry.notificationDashboardUrls;
   if (entry.dashboardUrls?.length) return entry.dashboardUrls;
-  const keys = entry.notificationDashboardKeys ?? [];
+  const keys = entry.taskCategoryKeys ?? [];
   const urls: string[] = [];
   for (const key of keys) {
     const url = monitorUrlCatalog[key];
     if (!url) {
       const avail = Object.keys(monitorUrlCatalog);
       throw new Error(
-        `bid_bots.json bot "${entry.id}": notificationDashboardKeys includes unknown key "${key}". ` +
+        `bid_bots.json bot "${entry.id}": taskCategoryKeys includes unknown key "${key}". ` +
           `Defined in config/settings.json notificationMonitorUrls: ${avail.length ? avail.join(", ") : "(none)"}`,
       );
     }
@@ -57,10 +61,8 @@ const fileSchema = z.object({
 
 function resolveNotifyUrl(entry: BidBotConfigFileEntry): string {
   if (entry.notifyUrl) return entry.notifyUrl;
-  const host = entry.host ?? "127.0.0.1";
-  const pathPart = entry.notifyPath ?? "/notify";
-  const normalizedPath = pathPart.startsWith("/") ? pathPart : `/${pathPart}`;
-  return `http://${host}:${entry.port}${normalizedPath}`;
+  const host = entry.host ?? DEFAULT_BID_BOT_HOST;
+  return `http://${host}:${entry.port}${BID_BOT_NOTIFY_PATH}`;
 }
 
 function toTarget(entry: BidBotConfigFileEntry): BidBotNotifyTarget {

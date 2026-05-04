@@ -49,7 +49,7 @@ function buildNotificationLines(notifyInput: BidDesktopNotificationInput): { lin
 }
 
 async function runPowerShellScript(psScript: string): Promise<void> {
-  const tmpPs1 = path.join(tmpdir(), `bid-bot-toast-${Date.now()}.ps1`);
+  const tmpPs1 = path.join(tmpdir(), `__bid-bot-toast-${Date.now()}.ps1`);
   writeFileSync(tmpPs1, `\uFEFF${psScript}`, "utf8");
   await new Promise<void>((resolve, reject) => {
     const child = spawn(

@@ -11,12 +11,11 @@ export type BidBotNotifyTarget = {
  */
 export type BidBotConfigFileEntry = {
   id: string;
-  /** If set, overrides host/port/notifyPath */
+  /** If set, full URL (otherwise http://127.0.0.1:port/notify) */
   notifyUrl?: string;
+  /** Override host only if not localhost (default 127.0.0.1) */
   host?: string;
   port: number;
-  /** Default "/notify" */
-  notifyPath?: string;
   /** If true (default), this entry is used */
   enabled?: boolean;
   /**
@@ -28,7 +27,7 @@ export type BidBotConfigFileEntry = {
   /**
    * Names of URLs from `config/settings.json` → `notificationMonitorUrls`. Each bid-bot only polls and notifies for tasks from the dashboards it lists here.
    */
-  notificationDashboardKeys?: string[];
+  taskCategoryKeys?: string[];
 };
 
 export type BidBotsConfigFile = {

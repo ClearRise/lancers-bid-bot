@@ -52,10 +52,12 @@ function extractText(result: unknown): string {
 }
 
 export async function generateProposalText(detail: TaskDetail): Promise<string | null> {
+  if (!config.enableAiProposal) return null;
+
   const prompt = createPrompt(detail);
   if (!prompt) {
     if (!warnedMissingPrompt) {
-      console.warn("[ai-proposal-mistral] Missing prompt file: config/proposal_prompt.txt");
+      console.warn("[ai-proposal-mistral] Missing or empty proposal_prompt.txt in profile folder (or __config/ or config/)");
       warnedMissingPrompt = true;
     }
     return null;

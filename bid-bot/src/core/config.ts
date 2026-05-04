@@ -1,8 +1,15 @@
-import "dotenv/config";
-import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { z } from "zod";
+import { bootstrapInstanceEnvironment, resolvedInstanceId } from "./instance-bootstrap.js";
+import {
+  instanceConfigDirAbs,
+  legacyRepoConfigProposalPrompt,
+  obsoleteRepoConfigProposalPrompt,
+  readTextFileFirstExisting,
+} from "./instance-content-paths.js";
+
+/** Loads shared .env, then `__<id>/config` + `__<id>/data` (parent = `BID_BOT_PROFILES_DIR` or optional __config/instances.json) — instance required */
+bootstrapInstanceEnvironment();
 
 const emptyToUndefined = (v: unknown) => (v === "" || v === undefined ? undefined : v);
 
@@ -44,6 +51,10 @@ const schema = z.object({
     z.enum(["ai", "template"]).optional(),
   ),
   JAPANESE_STUDY_EVERY_N_PROPERTIES: z.coerce.number().int().positive().default(10),
+  BID_AI_PROVIDER: z
+    .string()
+    .optional()
+    .transform((s) => (s?.trim().toLowerCase() === "openai" ? ("openai" as const) : ("mistral" as const))),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -54,22 +65,19 @@ if (!parsed.success) {
 
 const e = parsed.data;
 
-function resolveFromSrc(relativePathFromSrc: string): string {
-  const currentFilePath = fileURLToPath(import.meta.url);
-  const currentDir = path.dirname(currentFilePath);
-  return path.resolve(currentDir, relativePathFromSrc);
-}
-
-function loadTextFile(relativePathFromSrc: string): string {
-  const filePath = resolveFromSrc(relativePathFromSrc);
-  try {
-    return fs.readFileSync(filePath, "utf8").trim();
-  } catch {
-    return "";
-  }
+function loadProposalAiPromptTemplate(storageStatePath: string): string {
+  const repoRoot = process.cwd();
+  const configDir = instanceConfigDirAbs(repoRoot, storageStatePath);
+  return readTextFileFirstExisting([
+    path.join(configDir, "proposal_prompt.txt"),
+    legacyRepoConfigProposalPrompt(repoRoot),
+    obsoleteRepoConfigProposalPrompt(repoRoot),
+  ]);
 }
 
 export const config = {
+  /** Same id as notification-bot bid_bots.json entry. */
+  instanceId: resolvedInstanceId as string,
   dashboardUrl: e.LANCERS_DASHBOARD_URL,
   storageStatePath: e.STORAGE_STATE_PATH,
   headless: e.HEADLESS,
@@ -89,5 +97,7 @@ export const config = {
   proposalMode: e.BID_PROPOSAL_MODE ?? (e.ENABLE_AI_PROPOSAL ? "ai" : "template"),
   enableAiProposal: e.ENABLE_AI_PROPOSAL,
   japaneseStudyEveryNProperties: e.JAPANESE_STUDY_EVERY_N_PROPERTIES,
-  proposalAiPromptTemplate: loadTextFile("../../config/proposal_prompt.txt"),
+  proposalAiPromptTemplate: loadProposalAiPromptTemplate(e.STORAGE_STATE_PATH),
+  /** Proposal LLM when `proposalMode` is `ai`: `mistral` or `openai` only. */
+  bidAiProvider: e.BID_AI_PROVIDER,
 };

@@ -9,6 +9,7 @@
     "bid:manual": "tsx src/app/manual-bid.ts",
     "study:japanese": "tsx src/proposals/japanese-study.ts",
     "session:save": "tsx scripts/save-session.ts",
+    "profile:update": "tsx scripts/save-session.ts -- --update-profile",
     "toast:register": "tsx scripts/register-windows-toast.ts",
     "check": "tsc --noEmit"
   },
@@ -16,7 +17,6 @@
     "node": ">=20"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.90.0",
     "@mistralai/mistralai": "^2.2.1",
     "dotenv": "^16.4.5",
     "node-notifier": "^10.0.1",

@@ -1,3 +1,7 @@
+# =============================================================================
+# Japan/Auto — bid-bot + notification-bot
+# =============================================================================
+
 # --- Dependencies ---
 node_modules/
 
@@ -6,6 +10,17 @@ node_modules/
 .env.*
 !.env.example
 !**/.env.example
+
+# Legacy flat .env next to launcher folders (optional; tooling dirs may be absent)
+bid-bot/__launchers/*.env
+!bid-bot/__launchers/*.env.example
+bid-bot/launchers/*.env
+!bid-bot/launchers/*.env.example
+bid-bot/instances/*.env
+!bid-bot/instances/*.env.example
+
+# --- Workspace-local bid-bot manifest (profilesDir override; usually not committed) ---
+bid-bot/__config/
 
 # --- Logs ---
 *.log
@@ -40,16 +55,41 @@ build/
 **/blob-report/
 **/playwright/.cache/
 
-# --- Bot runtime / local state (under each package's data/) ---
+# --- bid-bot runtime / local state ---
+
+# Legacy flat data/ tree (pre per-profile layout)
 bid-bot/data/**
 !bid-bot/data/.gitkeep
-notification-bot/data/**
-!notification-bot/data/.gitkeep
 
-# --- Legacy paths at package root (old layout before data/) ---
+# --- bid-bot per-profile folders (logical id "buno" → __buno/ or profiles/__buno/) ---
+# Tracked in repo: package source (src/, scripts/), __launchers/*.bat, shared __config is ignored above.
+# Not tracked: each profile’s config/ (profile.json, secrets.env, prompts, templates) and data/ (session, queues, history).
+#
+# • Default BID_BOT_PROFILES_DIR="." → folders next to package.json, e.g. bid-bot/__buno/
+bid-bot/*/config/
+bid-bot/*/data/
+#
+# • BID_BOT_PROFILES_DIR="./profiles" → bid-bot/profiles/__buno/ … (whole tree ignored; lines below are explicit backup)
+bid-bot/profiles/**
+!bid-bot/profiles/.gitkeep
+bid-bot/profiles/*/config/
+bid-bot/profiles/*/data/
+
+# Leftover manifest file before migration to bid-bot/__config/
+bid-bot/config/instances.json
+
+# --- bid-bot legacy files at package root (old layout) ---
 bid-bot/bid-history.json
 bid-bot/bid-queue.json
 bid-bot/manual-bid-task-ids.txt
 bid-bot/storage-state*.json
+bid-bot/lancers-session.json
+
+# --- notification-bot runtime (no per-profile dirs; one session under data/) ---
+notification-bot/data/**
+!notification-bot/data/.gitkeep
+
+# Legacy paths at notification-bot root
 notification-bot/seen-work-ids.json
 notification-bot/storage-state*.json
+notification-bot/lancers-session.json

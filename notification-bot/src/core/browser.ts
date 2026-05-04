@@ -29,7 +29,7 @@ export async function createBrowserContext(): Promise<BrowserHandle> {
   }
 
   console.error(
-    "No session found. Run: npm run session:save\n" +
+    "No session found. Run: npm run session\n" +
       `Or place Playwright storage state at ${config.storageStatePath} or cookies at ${config.cookiesPath ?? "(COOKIES_PATH)"}.`,
   );
   await browser.close();

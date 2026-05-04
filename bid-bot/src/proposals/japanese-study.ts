@@ -1,28 +1,38 @@
-import "dotenv/config";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Mistral } from "@mistralai/mistralai";
 import { config } from "../core/config.js";
-
-function resolveFromSrc(relativePathFromSrc: string): string {
-  const currentFilePath = fileURLToPath(import.meta.url);
-  const currentDir = path.dirname(currentFilePath);
-  return path.resolve(currentDir, relativePathFromSrc);
-}
+import {
+  instanceConfigDirAbs,
+  legacyRepoConfigJapaneseCorpus,
+  obsoleteRepoConfigJapaneseCorpus,
+} from "../core/instance-content-paths.js";
 
 function loadNativeJapaneseSentences(): string[] {
-  const corpusPath = resolveFromSrc("../../config/native_japanese_sentences.txt");
-  try {
-    const raw = fs.readFileSync(corpusPath, "utf8");
-    return raw
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !line.startsWith("#"));
-  } catch (error) {
-    console.warn(`[study-japanese] failed to read corpus file: ${corpusPath}`, error);
-    return [];
+  const repoRoot = process.cwd();
+  const configDir = instanceConfigDirAbs(repoRoot, config.storageStatePath);
+  const primary = path.join(configDir, "native_japanese_sentences.txt");
+  const legacy = legacyRepoConfigJapaneseCorpus(repoRoot);
+  const obsolete = obsoleteRepoConfigJapaneseCorpus(repoRoot);
+
+  let lastError: unknown;
+  for (const corpusPath of [primary, legacy, obsolete]) {
+    try {
+      const raw = fs.readFileSync(corpusPath, "utf8");
+      const lines = raw
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && !line.startsWith("#"));
+      if (lines.length > 0) return lines;
+    } catch (e) {
+      lastError = e;
+    }
   }
+  if (lastError) {
+    console.warn(`[study-japanese] no corpus in ${primary} or ${legacy}`, lastError);
+  }
+  return [];
 }
 
 export async function studyNativeJapanese(trigger: string): Promise<void> {

@@ -60,7 +60,7 @@ if (!parsed.success) {
 const e = parsed.data;
 
 const filterSettingsSchema = z.object({
-  /** Short names → Lancers poll URLs (used with bid_bots.json notificationDashboardKeys). */
+  /** Short names → Lancers poll URLs (used with bid_bots.json taskCategoryKeys). */
   notificationMonitorUrls: z.record(z.string(), z.string()).optional(),
   /** Keyword lists for filters + AI prompt placeholders {{INCLUDE_KEYWORDS}} / {{EXCLUDE_KEYWORDS}}. */
   includeKeywords: z.array(z.string()).optional(),
@@ -132,7 +132,7 @@ const routingFromFile = loadBidBotsConfigFromPath(bidBotsConfigPath, monitorUrlC
 
 if (!routingFromFile) {
   console.error(
-    `[config] Missing or empty bid_bots.json at ${bidBotsConfigPath}. Set bid-bot entries and notificationDashboardKeys (or URLs) there.`,
+    `[config] Missing or empty bid_bots.json at ${bidBotsConfigPath}. Set bid-bot entries and taskCategoryKeys (or URLs) there.`,
   );
   process.exit(1);
 }
@@ -142,7 +142,7 @@ const bidBotTargetsPerDashboardIndex = routingFromFile.targetsPerDashboardIndex;
 
 if (dashboardUrls.length === 0) {
   console.error(
-    "[config] No notification monitor URLs: add notificationMonitorUrls to config/settings.json and notificationDashboardKeys in bid_bots.json, or set notificationDashboardUrls per bid-bot.",
+    "[config] No notification monitor URLs: add notificationMonitorUrls to config/settings.json and taskCategoryKeys in bid_bots.json, or set notificationDashboardUrls per bid-bot.",
   );
   process.exit(1);
 }

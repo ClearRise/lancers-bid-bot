@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/app/index.ts",
-    "session:save": "tsx scripts/save-session.ts"
+    "session": "tsx scripts/session.ts"
   },
   "engines": {
     "node": ">=20"

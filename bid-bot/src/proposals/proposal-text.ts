@@ -1,18 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { config } from "../core/config.js";
-import { generateProposalText } from "./ai-proposal-mistral.js";
+import {
+  instanceConfigDirAbs,
+  legacyRepoConfigTemplate,
+  obsoleteRepoConfigTemplate,
+} from "../core/instance-content-paths.js";
+import { generateProposalText as generateOpenAiProposal } from "./ai-proposal-openai.js";
+import { generateProposalText as generateMistralProposal } from "./ai-proposal-mistral.js";
 import type { TaskDetail } from "../core/types.js";
 
 const templateCache = new Map<number, string>();
 const warnedMissingTemplate = new Set<number>();
-
-function resolveFromSrc(relativePathFromSrc: string): string {
-  const currentFilePath = fileURLToPath(import.meta.url);
-  const currentDir = path.dirname(currentFilePath);
-  return path.resolve(currentDir, relativePathFromSrc);
-}
 
 function loadTemplateByDashboardIndex(index: number): string {
   if (templateCache.has(index)) {
@@ -20,21 +19,34 @@ function loadTemplateByDashboardIndex(index: number): string {
   }
 
   const templateNumber = index + 1;
-  const templatePath = resolveFromSrc(`../../config/proposal_templates/template-${templateNumber}.txt`);
-  try {
-    const text = fs.readFileSync(templatePath, "utf8").trim();
-    templateCache.set(index, text);
-    return text;
-  } catch {
-    if (!warnedMissingTemplate.has(index)) {
-      console.warn(
-        `[proposal-template] Missing template file for dashboard index ${index}: config/proposal_templates/template-${templateNumber}.txt`,
-      );
-      warnedMissingTemplate.add(index);
+  const repoRoot = process.cwd();
+  const configDir = instanceConfigDirAbs(repoRoot, config.storageStatePath);
+  const primary = path.join(configDir, "proposal_templates", `template-${templateNumber}.txt`);
+  const legacy = legacyRepoConfigTemplate(repoRoot, templateNumber);
+  const obsolete = obsoleteRepoConfigTemplate(repoRoot, templateNumber);
+
+  let text = "";
+  for (const p of [primary, legacy, obsolete]) {
+    try {
+      const t = fs.readFileSync(p, "utf8").trim();
+      if (t.length > 0) {
+        text = t;
+        break;
+      }
+    } catch {
+      /* try next */
     }
-    templateCache.set(index, "");
-    return "";
   }
+
+  if (!text && !warnedMissingTemplate.has(index)) {
+    console.warn(
+      `[proposal-template] Empty or missing template for dashboard index ${index}: ${primary} (or legacy ${legacy})`,
+    );
+    warnedMissingTemplate.add(index);
+  }
+
+  templateCache.set(index, text);
+  return text;
 }
 
 function applyPlaceholders(template: string, task: TaskDetail): string {
@@ -63,5 +75,8 @@ export async function buildProposalText(task: TaskDetail): Promise<string | null
     return applyPlaceholders(template, task);
   }
 
-  return generateProposalText(task);
+  if (config.bidAiProvider === "openai") {
+    return generateOpenAiProposal(task);
+  }
+  return generateMistralProposal(task);
 }
