@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Mistral } from "@mistralai/mistralai";
+import { aiSettings } from "../core/ai-settings.js";
 import { config } from "../core/config.js";
 import {
   instanceConfigDirAbs,
@@ -36,7 +37,7 @@ function loadNativeJapaneseSentences(): string[] {
 }
 
 export async function studyNativeJapanese(trigger: string): Promise<void> {
-  const apiKey = process.env.MISTRAL_API_KEY?.trim();
+  const apiKey = aiSettings.mistral.apiKey;
   if (!apiKey) {
     console.warn("[study-japanese] skipped: MISTRAL_API_KEY is not set");
     return;
@@ -52,7 +53,7 @@ export async function studyNativeJapanese(trigger: string): Promise<void> {
   const lesson = corpus.join("\n");
 
   await mistral.chat.complete({
-    model: process.env.MISTRAL_MODEL ?? "mistral-small-latest",
+    model: aiSettings.mistral.model,
     messages: [
       {
         role: "system",

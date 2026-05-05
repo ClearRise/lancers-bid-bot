@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { aiSettings } from "../core/ai-settings.js";
 import { config } from "../core/config.js";
 import type { TaskDetail } from "../core/types.js";
 
@@ -7,7 +8,7 @@ let warnedMissingPrompt = false;
 
 function getClient(): OpenAI | null {
   if (client) return client;
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = aiSettings.openai.apiKey;
   if (!apiKey) return null;
 
   client = new OpenAI({
@@ -50,7 +51,7 @@ export async function generateProposalText(detail: TaskDetail): Promise<string |
 
   try {
     const completion = await openai.chat.completions.create({
-      model: process.env.OPENAI_MODEL ?? "gpt-4.1-mini",
+      model: aiSettings.openai.model,
       messages: [
         {
           role: "system",

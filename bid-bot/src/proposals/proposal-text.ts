@@ -6,6 +6,7 @@ import {
   legacyRepoConfigTemplate,
   obsoleteRepoConfigTemplate,
 } from "../core/instance-content-paths.js";
+import { aiSettings } from "../core/ai-settings.js";
 import { generateProposalText as generateOpenAiProposal } from "./ai-proposal-openai.js";
 import { generateProposalText as generateMistralProposal } from "./ai-proposal-mistral.js";
 import type { TaskDetail } from "../core/types.js";
@@ -75,7 +76,7 @@ export async function buildProposalText(task: TaskDetail): Promise<string | null
     return applyPlaceholders(template, task);
   }
 
-  if (config.bidAiProvider === "openai") {
+  if (aiSettings.provider === "openai") {
     return generateOpenAiProposal(task);
   }
   return generateMistralProposal(task);

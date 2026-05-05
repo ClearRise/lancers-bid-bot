@@ -51,10 +51,6 @@ const schema = z.object({
     z.enum(["ai", "template"]).optional(),
   ),
   JAPANESE_STUDY_EVERY_N_PROPERTIES: z.coerce.number().int().positive().default(10),
-  BID_AI_PROVIDER: z
-    .string()
-    .optional()
-    .transform((s) => (s?.trim().toLowerCase() === "openai" ? ("openai" as const) : ("mistral" as const))),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -98,6 +94,4 @@ export const config = {
   enableAiProposal: e.ENABLE_AI_PROPOSAL,
   japaneseStudyEveryNProperties: e.JAPANESE_STUDY_EVERY_N_PROPERTIES,
   proposalAiPromptTemplate: loadProposalAiPromptTemplate(e.STORAGE_STATE_PATH),
-  /** Proposal LLM when `proposalMode` is `ai`: `mistral` or `openai` only. */
-  bidAiProvider: e.BID_AI_PROVIDER,
 };

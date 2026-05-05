@@ -1,4 +1,5 @@
 import { Mistral } from "@mistralai/mistralai";
+import { aiSettings } from "../core/ai-settings.js";
 import { config } from "../core/config.js";
 import type { TaskDetail } from "../core/types.js";
 
@@ -7,10 +8,10 @@ let warnedMissingPrompt = false;
 
 function getClient(): Mistral | null {
   if (client) return client;
-  const apiKey = process.env.MISTRAL_API_KEY;
+  const apiKey = aiSettings.mistral.apiKey;
   if (!apiKey) return null;
 
-  client = new Mistral({ apiKey: apiKey });
+  client = new Mistral({ apiKey });
   return client;
 }
 
@@ -71,7 +72,7 @@ export async function generateProposalText(detail: TaskDetail): Promise<string |
 
   try {
     const result = await mistral.chat.complete({
-      model: process.env.MISTRAL_MODEL ?? "mistral-small-latest",
+      model: aiSettings.mistral.model,
       messages: [
         {
           role: "user",
