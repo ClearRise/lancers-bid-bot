@@ -74,6 +74,7 @@ bid-bot/profiles/**
 !bid-bot/profiles/.gitkeep
 bid-bot/profiles/*/config/
 bid-bot/profiles/*/data/
+bid-bot/__launchers/
 
 # Leftover manifest file before migration to bid-bot/__config/
 bid-bot/config/instances.json

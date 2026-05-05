@@ -1,6 +1,16 @@
 import type { BidBotNotifyTarget } from "../bid-bots/types.js";
 import type { ScrapedTask } from "../../core/types.js";
 
+const MAX_INTER_BOT_DELAY_MS = 1000;
+
+function randomInterBotDelayMs(): number {
+  return Math.floor(Math.random() * (MAX_INTER_BOT_DELAY_MS + 1));
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function postToBidBot(
   task: ScrapedTask,
   dashboardUrlIndex: number,
@@ -51,18 +61,22 @@ export async function notifyBidBotsForDashboard(
     return [];
   }
 
-  const results = await Promise.all(
-    targets.map(async (target) => {
-      try {
-        await postToBidBot(task, dashboardUrlIndex, target);
-        return target.id;
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.warn(`[notify] bid-bot id=${target.id} work_id=${task.workId}: ${message}`);
-        return null;
-      }
-    }),
-  );
+  const results: Array<string | null> = [];
+  for (let i = 0; i < targets.length; i++) {
+    const target = targets[i];
+    try {
+      await postToBidBot(task, dashboardUrlIndex, target);
+      results.push(target.id);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      console.warn(`[notify] bid-bot id=${target.id} work_id=${task.workId}: ${message}`);
+      results.push(null);
+    }
+
+    if (i < targets.length - 1) {
+      await sleep(randomInterBotDelayMs());
+    }
+  }
 
   return results.filter((id): id is string => id != null);
 }
