@@ -286,7 +286,7 @@ export async function submitBid(page: Page, task: TaskDetail): Promise<BidResult
     recordStep("final-submit-check", "ok", "final submit button found");
     await Promise.all([
       page.waitForLoadState("domcontentloaded"),
-      // finalSubmit.click(),
+      finalSubmit.click(),
     ]);
     await page.waitForTimeout(500);
     recordStep("final-submit-click", "ok");
