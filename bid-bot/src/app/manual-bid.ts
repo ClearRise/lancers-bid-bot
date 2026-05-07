@@ -5,6 +5,8 @@ import { executeBidForWorkId } from "./bid-executor.js";
 import { loadHistory } from "../persistence/store.js";
 import { error, log } from "../core/logger.js";
 
+const DEFAULT_MANUAL_DELAY_MS = 0;
+
 function parseTaskIds(raw: string): string[] {
   const ids = raw
     .split(/\r?\n/)
@@ -21,25 +23,70 @@ function randomDelayMs(minMs: number, maxMs: number): number {
   return minMs + Math.floor(Math.random() * range);
 }
 
+function isValidWorkId(workId: string): boolean {
+  return /^\d{5,}$/.test(workId);
+}
+
+function normalizeToWorkId(raw: string): string {
+  const input = raw.trim();
+  const urlMatch = input.match(/\/work\/(?:detail|propose_start)\/(\d+)/);
+  if (urlMatch?.[1]) return urlMatch[1];
+  const idMatch = input.match(/\b(\d{5,})\b/);
+  if (idMatch?.[1]) return idMatch[1];
+  return input;
+}
+
+function parseDelayMs(): number {
+  const raw = process.env.MANUAL_BID_DELAY_MS?.trim();
+  if (!raw) return DEFAULT_MANUAL_DELAY_MS;
+  const parsed = Number(raw);
+  if (!Number.isFinite(parsed) || parsed < 0 || !Number.isInteger(parsed)) {
+    throw new Error(`invalid MANUAL_BID_DELAY_MS: "${raw}" (expected non-negative integer)`);
+  }
+  return parsed;
+}
+
 async function sleep(ms: number): Promise<void> {
   await new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
 async function main(): Promise<void> {
-  const raw = await fs.readFile(config.manualBidTaskIdsPath, "utf8");
-  const workIds = parseTaskIds(raw);
-  if (workIds.length === 0) {
-    log("manual", `no task IDs found in ${config.manualBidTaskIdsPath}`);
+  const delayMs = parseDelayMs();
+  const taskIdsPath = config.manualBidTaskIdsPath;
+  const fileRaw = await fs.readFile(taskIdsPath, "utf8");
+  const fileWorkIds = parseTaskIds(fileRaw).map(normalizeToWorkId);
+
+  const history = await loadHistory(config.seenIdsPath);
+  const invalidIds = fileWorkIds.filter((id) => !isValidWorkId(id));
+  if (invalidIds.length > 0) {
+    throw new Error(
+      `invalid work id(s) in ${taskIdsPath}: ${invalidIds.join(", ")} (expected numeric task id or task url)`,
+    );
+  }
+
+  if (fileWorkIds.length === 0) {
+    log(
+      "manual",
+      `no task IDs found in ${taskIdsPath}`,
+    );
     return;
   }
 
-  const history = await loadHistory(config.seenIdsPath);
   const attemptedIds = new Set(Object.keys(history));
   const { browser, context, page } = await openContext();
-  log("manual", `loaded ${workIds.length} manual work id(s) from ${config.manualBidTaskIdsPath}`);
+  log(
+    "manual",
+    `loaded manual ids count=${fileWorkIds.length} path=${taskIdsPath}`,
+  );
+  log("manual", `delay_between_bids=${delayMs}ms dry_run=${config.dryRun}`);
+
+  let submittedCount = 0;
+  let skippedCount = 0;
+  let failedCount = 0;
 
   try {
-    for (const [index, workId] of workIds.entries()) {
+    for (const [index, workId] of fileWorkIds.entries()) {
+      const previousStatus = history[workId]?.status ?? null;
       await executeBidForWorkId({
         page,
         workId,
@@ -47,22 +94,39 @@ async function main(): Promise<void> {
         attemptedIds,
         historyPath: config.seenIdsPath,
         dashboardUrlIndex: null,
-        contextLabel: `manual=${index + 1}/${workIds.length}`,
+        contextLabel: `manual=${index + 1}/${fileWorkIds.length}`,
         logger: {
           log: (message) => log("manual", message),
           error: (message, err) => error("manual", message, err),
         },
       });
+      const status = history[workId]?.status;
+      if (status === "submitted") submittedCount += 1;
+      else if (status === "skipped") skippedCount += 1;
+      else if (status === "failed") failedCount += 1;
+      if (status && status === previousStatus) {
+        log(
+          "manual",
+          `manual=${index + 1}/${fileWorkIds.length} status_unchanged work_id=${workId} status=${status}`,
+        );
+      }
 
-      const isLast = index === workIds.length - 1;
-      if (!isLast) {
-        const delayMs = randomDelayMs(60_000, 300_000);
-        const delaySec = Math.round(delayMs / 1000);
-        log("manual", `waiting random delay before next bid: ${delaySec}s`);
-        await sleep(delayMs);
+      const isLast = index === fileWorkIds.length - 1;
+      if (!isLast && delayMs > 0) {
+        const sleepMs = randomDelayMs(delayMs, delayMs);
+        const delaySec = Math.round(sleepMs / 1000);
+        log("manual", `waiting delay before next bid: ${delaySec}s`);
+        await sleep(sleepMs);
       }
     }
   } finally {
+    const total = fileWorkIds.length;
+    const known = submittedCount + skippedCount + failedCount;
+    const unknownCount = Math.max(total - known, 0);
+    log(
+      "manual",
+      `completed total=${total} submitted=${submittedCount} skipped=${skippedCount} failed=${failedCount} unknown=${unknownCount}`,
+    );
     await context.close();
     await browser.close();
     log("manual", "shutdown complete");
