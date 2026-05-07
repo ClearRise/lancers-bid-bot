@@ -53,7 +53,8 @@
     "ノーコード自動化",
     "テスト・デバッグ",
     "バグ修正",
-    "保守運用"
+    "保守運用",
+    "Shopify運営"
   ],
   "excludeKeywords": [
     "SNS運用",
@@ -81,7 +82,9 @@
     "買付代行",
     "発送代行",
     "検品作業",
-    "北朝鮮"
+    "北朝鮮",
+    "サムネイルデザイン",
+    "サムネイル画像"
   ],
   "aiPromptTemplate": "You are classifying freelance project listings for an automated bidding bot.\r\n\r\nGoal:\r\n- Accept broadly if the project is related to web/app/system/software development or design work.\r\n- Accept broadly if the project is related to business automation / workflow automation / RPA / integration automation.\r\n- Reject if the project is clearly unrelated to development/design, especially if it matches EXCLUDE_KEYWORDS.\r\n\r\nDecision policy:\r\n1) If project meaning matches EXCLUDE_KEYWORDS (SNS operation, product registration/listing, simple virtual assistant tasks, data entry only, buying agent work), return suitable=false.\r\n2) Otherwise, if project meaning is related to any engineering/design area in INCLUDE_KEYWORDS, return suitable=true.\r\n3) If unclear, prefer false.\r\n\r\nUse semantic meaning, not strict string match.\r\n\r\nReturn only JSON with this exact shape:\r\n{\"suitable\": true|false, \"reason\": \"short reason in english\"}\r\n\r\nINCLUDE_KEYWORDS:\r\n{{INCLUDE_KEYWORDS}}\r\n\r\nEXCLUDE_KEYWORDS:\r\n{{EXCLUDE_KEYWORDS}}\r\n\r\nPROJECT_TITLE:\r\n{{TITLE}}\r\n\r\nPROJECT_SNIPPET:\r\n{{SNIPPET}}"
 }
