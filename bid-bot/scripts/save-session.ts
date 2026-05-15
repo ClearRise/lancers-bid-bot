@@ -37,6 +37,9 @@ function printProfileSummary(id: string, profilesDir: string, e: InstanceManifes
   console.log(`  AI proposal text       ${ynLabel(e.enableAiProposal)}`);
   console.log(`  Headless browser       ${ynLabel(e.headless)}`);
   console.log(`  Budget definition rate ${e.budgetDefinitionRate ?? 0.5}`);
+  const est = e.staticEstimateText?.trim() || DEFAULT_STATIC_ESTIMATE_TEXT;
+  const estPreview = est.length > 100 ? `${est.slice(0, 100)}…` : est;
+  console.log(`  Static estimate text    ${estPreview.replace(/\n/g, "\\n")}`);
 }
 
 function validateInstanceId(id: string): boolean {
@@ -171,6 +174,18 @@ async function configureProfile(
     process.exit(1);
   }
 
+  const estimateDefault = (existing?.staticEstimateText?.trim() || DEFAULT_STATIC_ESTIMATE_TEXT).replace(
+    /\r?\n/g,
+    "\n",
+  );
+  const estimatePreview =
+    estimateDefault.length > 80 ? `${estimateDefault.slice(0, 80).replace(/\n/g, " ")}…` : estimateDefault;
+  console.log(
+    "\nText for the Lancers proposal “見積もり” / estimate free-text field (per profile). For multi-line text, edit profile.json after setup.\n",
+  );
+  const estimateIn = (await rl.question(`Static estimate text (Enter to keep) [${estimatePreview}]: `)).trim();
+  const staticEstimateText = estimateIn || estimateDefault;
+
   const entry: InstanceManifestEntry = {
     ...(existing ?? {}),
     id,
@@ -179,7 +194,7 @@ async function configureProfile(
     enableAiProposal,
     headless,
     budgetDefinitionRate,
-    ...(existing === undefined ? { staticEstimateText: DEFAULT_STATIC_ESTIMATE_TEXT } : {}),
+    staticEstimateText,
   };
   upsertInstance(repoRoot, entry);
 

@@ -138,6 +138,7 @@ const INSTANCE_KEY_ALIASES: Record<string, string> = {
   "japanese-study-every-n-properties": "japaneseStudyEveryNProperties",
   "min-budget-jpy": "minBudgetJpy",
   "max-budget-jpy": "maxBudgetJpy",
+  "static-estimate-text": "staticEstimateText",
 };
 
 function normalizeInstanceKeys(raw: Record<string, unknown>): Record<string, unknown> {
