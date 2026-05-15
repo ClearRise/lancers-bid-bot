@@ -16,6 +16,7 @@ import {
   upsertInstance,
   type InstanceManifestEntry,
 } from "../src/core/instances-manifest.js";
+import { DEFAULT_STATIC_ESTIMATE_TEXT } from "../src/core/instance-bootstrap.js";
 
 function section(title: string): void {
   const line = "-".repeat(Math.max(44, title.length + 8));
@@ -178,6 +179,7 @@ async function configureProfile(
     enableAiProposal,
     headless,
     budgetDefinitionRate,
+    ...(existing === undefined ? { staticEstimateText: DEFAULT_STATIC_ESTIMATE_TEXT } : {}),
   };
   upsertInstance(repoRoot, entry);
 

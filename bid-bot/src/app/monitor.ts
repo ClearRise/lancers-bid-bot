@@ -1,10 +1,20 @@
 import { config } from "../core/config.js";
 import { openContext } from "../core/browser.js";
 import { loadHistory } from "../persistence/store.js";
-import { takeQueuedTasks } from "../persistence/queue-store.js";
+import { prependTasksToQueue, takeQueuedTasks } from "../persistence/queue-store.js";
 import { error, log } from "../core/logger.js";
 import { studyNativeJapanese } from "../proposals/japanese-study.js";
 import { executeBidForWorkId } from "./bid-executor.js";
+import {
+  isLancersLoggedOutOnPage,
+  LOGGED_OUT_DESKTOP_MESSAGE,
+  sleepUntil,
+  startLancersSessionStatusTrackingWithDesktopNotify,
+} from "@japan-auto/lancers-session";
+
+async function sleep(ms: number, signal: AbortSignal): Promise<void> {
+  await sleepUntil(ms, signal);
+}
 
 export type MonitorWorker = {
   trigger: () => void;
@@ -15,6 +25,16 @@ export async function startMonitorWorker(signal: AbortSignal): Promise<MonitorWo
   const attemptedIds = new Set(Object.keys(history));
   const { browser, context, page } = await openContext();
   log("monitor", `startup dry_run=${config.dryRun} history=${attemptedIds.size}`);
+
+  const sessionTracker = startLancersSessionStatusTrackingWithDesktopNotify({
+    context,
+    signal,
+    enabled: config.sessionStatusCheckEnabled,
+    intervalMs: config.sessionStatusCheckIntervalMs,
+    desktopNotification: config.desktopNotification,
+    windowsToastAppId: config.windowsToastAppId,
+    logPrefix: "[session]",
+  });
   let cycle = 0;
   let isProcessing = false;
   let pendingTrigger = false;
@@ -35,11 +55,16 @@ export async function startMonitorWorker(signal: AbortSignal): Promise<MonitorWo
   );
 
   const openDashboardWhileIdle = async (): Promise<void> => {
+    if (sessionTracker.isLoggedOut()) return;
     try {
       await page.goto(config.dashboardUrl, {
         waitUntil: "domcontentloaded",
         timeout: 60_000,
       });
+      if (config.sessionStatusCheckEnabled && (await isLancersLoggedOutOnPage(page))) {
+        log("monitor", `idle dashboard skipped: ${LOGGED_OUT_DESKTOP_MESSAGE}`);
+        return;
+      }
       log("monitor", "idle dashboard opened");
     } catch (err) {
       error("monitor", "failed to open idle dashboard", err);
@@ -69,6 +94,12 @@ export async function startMonitorWorker(signal: AbortSignal): Promise<MonitorWo
         cycle += 1;
         log("monitor", `cycle=${cycle} start`);
 
+        if (sessionTracker.isLoggedOut()) {
+          log("monitor", `cycle=${cycle} skipped: ${LOGGED_OUT_DESKTOP_MESSAGE}`);
+          await sleep(Math.min(config.pollIntervalMs, 30_000), signal);
+          continue;
+        }
+
         const queued = await takeQueuedTasks(config.bidQueuePath, config.maxBidsPerCycle);
         if (queued.queueSize > 0) {
           // Continue draining queue in this run even without a new API trigger.
@@ -89,7 +120,15 @@ export async function startMonitorWorker(signal: AbortSignal): Promise<MonitorWo
           break;
         }
 
-        for (const queuedTask of tasks) {
+        for (let i = 0; i < tasks.length; i += 1) {
+          if (sessionTracker.isLoggedOut()) {
+            const rest = tasks.slice(i);
+            await prependTasksToQueue(config.bidQueuePath, rest);
+            log("monitor", `cycle=${cycle} bidding stopped: ${LOGGED_OUT_DESKTOP_MESSAGE}; re-queued=${rest.length}`);
+            pendingTrigger = true;
+            break;
+          }
+          const queuedTask = tasks[i]!;
           const { workId, dashboardUrlIndex } = queuedTask;
           processedPropertyCount += 1;
           // const studyEvery = config.japaneseStudyEveryNProperties;

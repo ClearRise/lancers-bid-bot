@@ -14,6 +14,9 @@ import {
   type InstanceManifestEntry,
 } from "./instances-manifest.js";
 
+/** Default proposal estimate textarea text when `profile.json` omits `staticEstimateText`. */
+export const DEFAULT_STATIC_ESTIMATE_TEXT = `詳細はメッセージにてご相談できればと思っております。`;
+
 /** Set by bootstrap; always set in instance-only mode. */
 export let resolvedInstanceId: string | null = null;
 
@@ -52,6 +55,11 @@ function applyInstanceRuntimeFields(entry: InstanceManifestEntry): void {
   }
   if (entry.maxBudgetJpy !== undefined && entry.maxBudgetJpy !== null) {
     process.env.MAX_BUDGET_JPY = String(entry.maxBudgetJpy);
+  }
+
+  const estimateText = entry.staticEstimateText?.trim();
+  if (estimateText) {
+    process.env.STATIC_ESTIMATE_TEXT = estimateText;
   }
 }
 

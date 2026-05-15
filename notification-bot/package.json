@@ -12,6 +12,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@japan-auto/lancers-session": "file:../packages/lancers-session",
     "@heyputer/puter.js": "^2.2.15",
     "@mistralai/mistralai": "^2.2.1",
     "dotenv": "^16.4.5",

@@ -17,6 +17,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@japan-auto/lancers-session": "file:../packages/lancers-session",
     "@mistralai/mistralai": "^2.2.1",
     "dotenv": "^16.4.5",
     "node-notifier": "^10.0.1",

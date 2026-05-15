@@ -1,4 +1,6 @@
 import type { Page } from "playwright";
+import { isLancersLoggedOutOnPage } from "@japan-auto/lancers-session";
+import { config } from "../core/config.js";
 import { submitBid } from "../lancers/bid.js";
 import { scrapeTaskDetail } from "../lancers/detail.js";
 import { notifyBidResult } from "./notify-desktop.js";
@@ -47,6 +49,11 @@ export async function executeBidForWorkId(params: {
     contextLabel,
     dashboardUrlIndex = null,
   } = params;
+
+  if (config.sessionStatusCheckEnabled && (await isLancersLoggedOutOnPage(page))) {
+    logger.log(`${contextLabel} skipped_logged_out work_id=${workId}`);
+    return;
+  }
 
   logger.log(`${contextLabel} open_task_link work_id=${workId}`);
   try {

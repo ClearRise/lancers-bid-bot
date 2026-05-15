@@ -4,6 +4,10 @@ import { openContext } from "../core/browser.js";
 import { executeBidForWorkId } from "./bid-executor.js";
 import { loadHistory } from "../persistence/store.js";
 import { error, log } from "../core/logger.js";
+import {
+  LOGGED_OUT_DESKTOP_MESSAGE,
+  startLancersSessionStatusTrackingWithDesktopNotify,
+} from "@japan-auto/lancers-session";
 
 const DEFAULT_MANUAL_DELAY_MS = 0;
 
@@ -72,8 +76,23 @@ async function main(): Promise<void> {
     return;
   }
 
+  const controller = new AbortController();
+  const onSig = () => controller.abort();
+  process.on("SIGINT", onSig);
+  process.on("SIGTERM", onSig);
+
   const attemptedIds = new Set(Object.keys(history));
   const { browser, context, page } = await openContext();
+
+  const sessionTracker = startLancersSessionStatusTrackingWithDesktopNotify({
+    context,
+    signal: controller.signal,
+    enabled: config.sessionStatusCheckEnabled,
+    intervalMs: config.sessionStatusCheckIntervalMs,
+    desktopNotification: config.desktopNotification,
+    windowsToastAppId: config.windowsToastAppId,
+    logPrefix: "[session]",
+  });
   log(
     "manual",
     `loaded manual ids count=${fileWorkIds.length} path=${taskIdsPath}`,
@@ -86,6 +105,10 @@ async function main(): Promise<void> {
 
   try {
     for (const [index, workId] of fileWorkIds.entries()) {
+      if (sessionTracker.isLoggedOut()) {
+        log("manual", `stopped: ${LOGGED_OUT_DESKTOP_MESSAGE}`);
+        break;
+      }
       const previousStatus = history[workId]?.status ?? null;
       await executeBidForWorkId({
         page,
@@ -120,6 +143,9 @@ async function main(): Promise<void> {
       }
     }
   } finally {
+    controller.abort();
+    process.off("SIGINT", onSig);
+    process.off("SIGTERM", onSig);
     const total = fileWorkIds.length;
     const known = submittedCount + skippedCount + failedCount;
     const unknownCount = Math.max(total - known, 0);

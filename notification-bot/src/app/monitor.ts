@@ -11,6 +11,12 @@ import {
   seenIdsFileNameForBot,
 } from "../persistence/seen-store.js";
 import { notifyBidBotsForDashboard } from "../features/notify/notify-bid-bots.js";
+import {
+  isLancersLoggedOutOnPage,
+  LOGGED_OUT_DESKTOP_MESSAGE,
+  sleepUntil,
+  startLancersSessionStatusTrackingWithDesktopNotify,
+} from "@japan-auto/lancers-session";
 
 type QueuedTask = {
   task: ScrapedTask;
@@ -100,16 +106,44 @@ export async function runMonitorLoop(signal: AbortSignal): Promise<void> {
 
   const { browser, context } = await createBrowserContext();
 
+  const sessionTracker = startLancersSessionStatusTrackingWithDesktopNotify({
+    context,
+    signal,
+    enabled: config.sessionStatusCheckEnabled,
+    intervalMs: config.sessionStatusCheckIntervalMs,
+    desktopNotification: config.desktopNotification,
+    windowsToastAppId: config.windowsToastAppId,
+    logPrefix: "[session]",
+  });
+
   try {
     const workers = config.dashboardUrls.map((url, workerIndex) => (async () => {
       const page = await context.newPage();
       let cycle = 0;
       while (!signal.aborted) {
         cycle += 1;
+        if (sessionTracker.isLoggedOut()) {
+          console.log(
+            `[monitor][worker ${workerIndex + 1}][cycle ${cycle}] skipped: ${LOGGED_OUT_DESKTOP_MESSAGE}`,
+          );
+          await sleepUntil(config.refreshIntervalMs, signal);
+          continue;
+        }
         try {
           console.log(`[monitor][worker ${workerIndex + 1}][cycle ${cycle}] refreshing dashboard-${workerIndex + 1}`);
           await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60_000 });
           await new Promise((r) => setTimeout(r, 800));
+          if (
+            config.sessionStatusCheckEnabled &&
+            !sessionTracker.isLoggedOut() &&
+            (await isLancersLoggedOutOnPage(page))
+          ) {
+            console.log(
+              `[monitor][worker ${workerIndex + 1}][cycle ${cycle}] scrape skipped: ${LOGGED_OUT_DESKTOP_MESSAGE}`,
+            );
+            await sleepUntil(config.refreshIntervalMs, signal);
+            continue;
+          }
           const tasks = await scrapeTasksFromPage(page);
           console.log(`[monitor][worker ${workerIndex + 1}][cycle ${cycle}] scraped=${tasks.length}`);
 
@@ -147,6 +181,10 @@ export async function runMonitorLoop(signal: AbortSignal): Promise<void> {
     const processor = (async () => {
       while (!signal.aborted) {
         await waitForTask();
+        if (sessionTracker.isLoggedOut()) {
+          await sleepUntil(Math.min(config.refreshIntervalMs, 30_000), signal);
+          continue;
+        }
         const queuedTask = taskQueue.shift();
         if (!queuedTask) continue;
         const { task, dashboardUrlIndex } = queuedTask;

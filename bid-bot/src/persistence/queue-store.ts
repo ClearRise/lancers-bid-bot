@@ -75,3 +75,10 @@ export async function takeQueuedTasks(
   }
   return { tasks, queueSize: remaining.length };
 }
+
+/** Put tasks at the front of the queue (e.g. after aborting a batch). */
+export async function prependTasksToQueue(path: string, tasks: QueuedTask[]): Promise<void> {
+  if (tasks.length === 0) return;
+  const existing = await loadQueue(path);
+  await saveQueue(path, [...tasks, ...existing]);
+}

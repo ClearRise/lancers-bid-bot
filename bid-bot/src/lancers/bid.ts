@@ -4,8 +4,6 @@ import { config } from "../core/config.js";
 import { buildProposalText } from "../proposals/proposal-text.js";
 import type { BidResult, TaskDetail } from "../core/types.js";
 
-const STATIC_ESTIMATE_TEXT = `詳細はメッセージにてご相談できればと思っております。`;
-
 async function calculateEstimatePrice(task: TaskDetail): Promise<number | null> {
   const min = task.budgetMinJpy;
   const max = task.budgetMaxJpy;
@@ -171,7 +169,7 @@ export async function submitBid(page: Page, task: TaskDetail): Promise<BidResult
   const estimate = page.locator(selectors.proposalEstimateTextarea).first();
   const estimateCount = await estimate.count();
   if (estimateCount > 0) {
-    await estimate.fill(STATIC_ESTIMATE_TEXT);
+    await estimate.fill(config.staticEstimateText);
     recordStep("proposal-estimate-fill", "ok");
   } else {
     recordStep("proposal-estimate-fill", "skipped", "field not found");

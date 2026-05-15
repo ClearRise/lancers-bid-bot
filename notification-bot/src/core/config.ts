@@ -48,6 +48,16 @@ const envSchema = z.object({
     z.boolean().optional(),
   ),
   OPENAI_API_KEY: z.preprocess(emptyToUndef, z.string().optional()),
+  DESKTOP_NOTIFICATION: z.preprocess(
+    (v) => (v === "" || v === undefined ? "true" : v),
+    z.enum(["true", "false"]).transform((x) => x !== "false"),
+  ),
+  WINDOWS_TOAST_APP_ID: z.string().default("Cursor"),
+  SESSION_STATUS_CHECK_ENABLED: z.preprocess(
+    (v) => (v === "" || v === undefined ? "true" : v),
+    z.enum(["true", "false"]).transform((x) => x !== "false"),
+  ),
+  SESSION_STATUS_CHECK_INTERVAL_MS: z.coerce.number().int().positive().default(600_000),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -178,6 +188,10 @@ export const config = {
   aiMaxSnippetChars: filterSettings.aiFilter?.maxSnippetChars ?? 1200,
   aiPromptTemplate: filterSettings.aiPromptTemplate ?? "",
   openaiApiKey: e.OPENAI_API_KEY,
+  desktopNotification: e.DESKTOP_NOTIFICATION,
+  windowsToastAppId: e.WINDOWS_TOAST_APP_ID,
+  sessionStatusCheckEnabled: e.SESSION_STATUS_CHECK_ENABLED,
+  sessionStatusCheckIntervalMs: e.SESSION_STATUS_CHECK_INTERVAL_MS,
 };
 
 export type { BidBotNotifyTarget } from "../features/bid-bots/types.js";

@@ -1,6 +1,10 @@
 import path from "node:path";
 import { z } from "zod";
-import { bootstrapInstanceEnvironment, resolvedInstanceId } from "./instance-bootstrap.js";
+import {
+  bootstrapInstanceEnvironment,
+  DEFAULT_STATIC_ESTIMATE_TEXT,
+  resolvedInstanceId,
+} from "./instance-bootstrap.js";
 import {
   instanceConfigDirAbs,
   legacyRepoConfigProposalPrompt,
@@ -51,6 +55,15 @@ const schema = z.object({
     z.enum(["ai", "template"]).optional(),
   ),
   JAPANESE_STUDY_EVERY_N_PROPERTIES: z.coerce.number().int().positive().default(10),
+  STATIC_ESTIMATE_TEXT: z.preprocess(
+    emptyToUndefined,
+    z.string().default(DEFAULT_STATIC_ESTIMATE_TEXT),
+  ),
+  SESSION_STATUS_CHECK_ENABLED: z.preprocess(
+    (v) => (v === "" || v === undefined ? "true" : v),
+    z.enum(["true", "false"]).transform((x) => x !== "false"),
+  ),
+  SESSION_STATUS_CHECK_INTERVAL_MS: z.coerce.number().int().positive().default(600_000),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -94,4 +107,7 @@ export const config = {
   enableAiProposal: e.ENABLE_AI_PROPOSAL,
   japaneseStudyEveryNProperties: e.JAPANESE_STUDY_EVERY_N_PROPERTIES,
   proposalAiPromptTemplate: loadProposalAiPromptTemplate(e.STORAGE_STATE_PATH),
+  staticEstimateText: e.STATIC_ESTIMATE_TEXT,
+  sessionStatusCheckEnabled: e.SESSION_STATUS_CHECK_ENABLED,
+  sessionStatusCheckIntervalMs: e.SESSION_STATUS_CHECK_INTERVAL_MS,
 };

@@ -164,6 +164,7 @@ export const instanceEntrySchema = z.object({
   japaneseStudyEveryNProperties: z.coerce.number().int().positive().optional(),
   minBudgetJpy: z.union([z.coerce.number().int().nonnegative(), z.null()]).optional(),
   maxBudgetJpy: z.union([z.coerce.number().int().nonnegative(), z.null()]).optional(),
+  staticEstimateText: z.string().optional(),
 });
 
 export type InstanceManifestEntry = z.infer<typeof instanceEntrySchema>;
